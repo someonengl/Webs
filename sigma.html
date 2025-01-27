@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management System</title>
+    <style>
+        /* Basic styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #111;
+            color: #f1f1f1;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            background-color: #222;
+            border-radius: 8px;
+            padding: 30px;
+            width: 350px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-field {
+            width: 94.3%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background-color: #333;
+            color: #f1f1f1;
+        }
+
+        button {
+            width: 94.3%;
+            padding: 10px;
+            background-color: #444;
+            color: #f1f1f1;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        .message {
+            color: #ff5c5c;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: #5cff5c;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .action-button {
+            background-color: #444;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .action-button:hover {
+            background-color: #555;
+        }
+
+        .user-info {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .user-info span {
+            font-weight: bold;
+        }
+
+        .footer {
+            font-size: 12px;
+            margin-top: 30px;
+            color: #888;
+        }
+
+        p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #f1f1f1;
+        }
+
+        a {
+            color: #5cff5c;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>User Management System</h1>
+        <div id="message" class="message"></div>
+
+        <div id="registerSection">
+            <h2>Register</h2>
+            <input type="text" id="registerUsername" class="input-field" placeholder="Enter Username" required>
+            <input type="password" id="registerPassword" class="input-field" placeholder="Enter Password" required>
+            <button onclick="registerUser()">Register</button>
+            <p>Already have an account? <a href="#" onclick="switchToLogin()">Login here</a></p>
+        </div>
+
+        <div id="loginSection" class="hidden">
+            <h2>Login</h2>
+            <input type="text" id="loginUsername" class="input-field" placeholder="Enter Username" required>
+            <input type="password" id="loginPassword" class="input-field" placeholder="Enter Password" required>
+            <button onclick="loginUser()">Login</button>
+            <p>Don't have an account? <a href="#" onclick="switchToRegister()">Register here</a></p>
+        </div>
+
+        <div id="userSection" class="hidden">
+            <h2>Welcome, <span id="currentUser"></span></h2>
+            <div class="user-info">
+                <button class="action-button" onclick="logoutUser()">Logout</button>
+                <button class="action-button" onclick="saveKey()">Save Key</button>
+                <button class="action-button" onclick="renewKey()">Renew Key</button>
+                <button class="action-button" onclick="giveKey()">Give Key</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>All rights reserved &copy; 2025</p>
+    </div>
+
+    <script>
+        // Initialize localStorage objects
+        let userPasswords = JSON.parse(localStorage.getItem('userPasswords')) || {};
+        let userMemo = JSON.parse(localStorage.getItem('userMemo')) || {};
+        let currentUser = '';
+
+        // Utility function to show messages
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = type || '';
+        }
+
+        // Save data to localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('userPasswords', JSON.stringify(userPasswords));
+            localStorage.setItem('userMemo', JSON.stringify(userMemo));
+        }
+
+        // Registration function
+        function registerUser() {
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+
+            if (userPasswords[username]) {
+                showMessage('Username already exists!', 'message');
+                return;
+            }
+
+            userPasswords[username] = password;
+            userMemo[username] = {};
+            showMessage('User registered successfully!', 'success');
+            saveToLocalStorage();
+            switchToLogin();
+        }
+
+        // Login function
+        function loginUser() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!userPasswords[username] || userPasswords[username] !== password) {
+                showMessage('Invalid username or password.', 'message');
+                return;
+            }
+
+            currentUser = username;
+            document.getElementById('currentUser').textContent = username;
+            switchToUserSection();
+            showMessage('Login successful!', 'success');
+        }
+
+        // Logout function
+        function logoutUser() {
+            currentUser = '';
+            switchToLogin();
+            showMessage('Logged out successfully!', 'success');
+        }
+
+        // Switch to Login screen
+        function switchToLogin() {
+            document.getElementById('registerSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('userSection').classList.add('hidden');
+        }
+
+        // Switch to Register screen
+        function switchToRegister() {
+            document.getElementById('registerSection').classList.remove('hidden');
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('userSection').classList.add('hidden');
+        }
+
+        // Switch to User section (after login)
+        function switchToUserSection() {
+            document.getElementById('registerSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('userSection').classList.remove('hidden');
+        }
+
+        // Save Key function
+        function saveKey() {
+            const key = prompt("Enter the word to save:");
+
+            if (userMemo[currentUser][key]) {
+                showMessage('Key already exists for this user.', 'message');
+                return;
+            }
+
+            const hash = crypt(key);
+            userMemo[currentUser][key] = hash;
+            userMemo[currentUser][hash] = key;
+            showMessage('Key saved successfully!', 'success');
+            saveToLocalStorage();
+        }
+
+        // Renew Key function
+        function renewKey() {
+            const key = prompt("Enter the word to renew:");
+
+            if (!userMemo[currentUser][key]) {
+                showMessage('Key not found.', 'message');
+                return;
+            }
+
+            const hash = crypt(key);
+            userMemo[currentUser][key] = hash;
+            userMemo[currentUser][hash] = key;
+            showMessage('Key renewed successfully!', 'success');
+            saveToLocalStorage();
+        }
+
+        // Give Key function
+        function giveKey() {
+            const type = prompt("Enter type (Hash/Word):");
+            const value = prompt("Enter value:");
+
+            if (type.toLowerCase() === "hash") {
+                if (userMemo[currentUser][value]) {
+                    showMessage('Word: ' + userMemo[currentUser][value], 'success');
+                } else {
+                    showMessage('Hash not found.', 'message');
+                }
+            } else if (type.toLowerCase() === "word") {
+                if (userMemo[currentUser][value]) {
+                    showMessage('Hash: ' + userMemo[currentUser][value], 'success');
+                } else {
+                    showMessage('Word not found.', 'message');
+                }
+            } else {
+                                showMessage('Invalid type.', 'message');
+            }
+        }
+
+        // Simple crypt function to simulate hashing
+        function crypt(str) {
+            let res = 0;
+            const seed = Date.now() + Math.random();
+            for (let i = 0; i < str.length; i++) {
+                res = str.charCodeAt(i) + (res << 4) + (res << 10) - res + (str.charCodeAt(i) ^ res) + seed;
+            }
+            return res.toString();
+        }
+    </script>
+</body>
+
+</html>
